@@ -1,0 +1,33 @@
+{
+  "name": "chat-app",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/himanshubokde21/chat-app#readme",
+  "bugs": {
+    "url": "https://github.com/himanshubokde21/chat-app/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/himanshubokde21/chat-app.git"
+  },
+  "license": "ISC",
+  "author": "himanshu",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "star": "node index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.10.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.2.1",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.3",
+    "tsx": "^4.22.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6"
+  }
+}
