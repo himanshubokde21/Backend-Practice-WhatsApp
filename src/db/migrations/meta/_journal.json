@@ -8,6 +8,20 @@
       "when": 1779379410439,
       "tag": "0000_white_ken_ellis",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779620088542,
+      "tag": "0001_first_mastermind",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780079723026,
+      "tag": "0002_curious_sebastian_shaw",
+      "breakpoints": true
     }
   ]
 }

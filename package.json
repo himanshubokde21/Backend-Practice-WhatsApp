@@ -16,10 +16,11 @@
   "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/server.ts",
+    "start": "nodemon ./src/server.ts",
     "db:studio": "npx drizzle-kit studio",
     "db:migrate": "npx drizzle-kit migrate",
-    "db:gen": "npx drizzle-kit generate"
+    "db:gen": "npx drizzle-kit generate",
+    "db:push": "npx drizzle-kit push"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
@@ -31,15 +32,17 @@
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.8.5",
     "fastify-bcrypt": "^1.0.1",
-    "fastify-multer": "^2.0.3",
     "fs": "^0.0.1-security",
+    "nodemon": "^3.1.14",
     "pg": "^8.21.0",
+    "pump": "^3.0.4",
     "tsc": "^2.0.4"
   },
   "devDependencies": {
     "@types/node": "^25.9.0",
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
+    "ts-node": "^10.9.2",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3"
   }

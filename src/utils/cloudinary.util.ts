@@ -1,7 +1,6 @@
 import "dotenv"
 import { v2 as cloudinary } from "cloudinary"
 import fs from "fs"
-import app from "../app"
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
@@ -11,9 +10,11 @@ cloudinary.config({
 
 const uploadOnCloudinary = async (filepath: string) => {
         if (!filepath) return null
+        
         try {
             const res = await cloudinary.uploader.upload(filepath)
             fs.unlinkSync(filepath)
+            console.log("uploaded on cloudinary")
             return res
         }
         catch (error) {
@@ -23,9 +24,12 @@ const uploadOnCloudinary = async (filepath: string) => {
 }
 
 const deleteFromCloudinary = async (id: string) => {
-    const res = await cloudinary.uploader.destroy(id)
-    return res
+    try {
+        const res = await cloudinary.uploader.destroy(id)
+        return res
+    } catch (error) {
+        return null
+    }
 }
 
-app.decorate("uploadOnCloudinary", uploadOnCloudinary)
-app.decorate("deleteFromCloudinary", deleteFromCloudinary)
+export { uploadOnCloudinary, deleteFromCloudinary }

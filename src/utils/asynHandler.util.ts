@@ -1,8 +1,20 @@
-import { FastifyRequest, FastifyReply } from "fastify"
+import type { FastifyReply, FastifyRequest } from "fastify"
 
-const asyncHandler = async (reqHandler: Function) => {
-    return (req: FastifyRequest, rep: FastifyReply, next: (err: Error) => void) => {
-        Promise.resolve(reqHandler).catch((err) => next(err))
+const asyncHandler = (reqHandler: Function) => {
+
+    return async (
+        req: FastifyRequest,
+        rep: FastifyReply
+    ) => {
+
+        try {
+
+            await reqHandler(req, rep)
+
+        } catch (err) {
+
+            rep.send(err)
+        }
     }
 }
 
