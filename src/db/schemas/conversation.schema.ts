@@ -1,7 +1,7 @@
 import { pgTable, uuid, text, timestamp } from "drizzle-orm/pg-core";
 
 
-const conversationtable = pgTable("Conversation", {
+const conversationTable = pgTable("Conversation", {
     id: uuid("id").primaryKey().defaultRandom(),
     conversationType: text("type").notNull(),
     title: text("title").notNull(),
@@ -11,4 +11,4 @@ const conversationtable = pgTable("Conversation", {
 
 })
 
-export default conversationtable
+export default conversationTable

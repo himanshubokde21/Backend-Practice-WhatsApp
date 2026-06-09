@@ -6,6 +6,7 @@ type verifiedUser = Pick<
     "id" | "email" | "phoneNo" |"password" | "username" | "profileImg" | "profileImgId"
 >
 
+
 declare module "@fastify/jwt" {
 
     interface FastifyJWT {

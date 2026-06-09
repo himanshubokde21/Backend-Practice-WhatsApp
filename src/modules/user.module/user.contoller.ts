@@ -106,7 +106,7 @@ const registerUser = asyncHander(async (req: FastifyRequest, rep: FastifyReply) 
         throw new ApiError(500, "Internal Server Error; Failed to Register User!")
     }
 
-    const AceessToken = await generateAccessToken(user)
+    const aceessToken = await generateAccessToken(user)
     const refreshToken = await generateRefreshToken(user.id)
 
     const [registerUser] = await db
@@ -128,8 +128,8 @@ const registerUser = asyncHander(async (req: FastifyRequest, rep: FastifyReply) 
 
     return rep
     .status(201)
-    .cookie("AccessToken", AceessToken)
-    .cookie("RefreshToken", refreshToken)
+    .cookie("accessToken", aceessToken)
+    .cookie("refreshToken", refreshToken)
     .send(
         new ApiResponse(201, registerUser, "User Registered Successfully!")
     )
@@ -164,21 +164,21 @@ const loginUser = asyncHander(async (req: FastifyRequest, rep: FastifyReply) => 
         throw new ApiError(404, "User Not Found!")
     }
 
-    if (!verifyPassword(fields.password, user.password)) {
+    if (! await verifyPassword(fields.password, user.password)) {
         throw new ApiError(401, "Unauthorized Access!")
     }
 
-    const newAccessToken = await generateAccessToken(user)
-    const newRefreshToken = await generateRefreshToken(user.id)
+    const accessToken = await generateAccessToken(user)
+    const refreshToken = await generateRefreshToken(user.id)
 
-    if (!newRefreshToken || !newAccessToken) {
+    if (!refreshToken || !accessToken) {
         throw new ApiError(500, "Internal Server Error!")
     }
 
     const [updateUser] = await db
     .update(userTable)
     .set({
-        refreshToken: newRefreshToken
+        refreshToken: refreshToken
     })
     .where(
         and(
@@ -194,8 +194,8 @@ const loginUser = asyncHander(async (req: FastifyRequest, rep: FastifyReply) => 
 
     return rep
     .status(200)
-    .cookie("accessToken", newAccessToken)
-    .cookie("refreshToken", newRefreshToken)
+    .cookie("accessToken", accessToken)
+    .cookie("refreshToken", refreshToken)
     .send(
         new ApiResponse(200, updateUser, "User Logged In SuccessFul!")
     )

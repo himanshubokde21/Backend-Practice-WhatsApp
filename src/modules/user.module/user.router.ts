@@ -1,5 +1,17 @@
 import type { FastifyInstance } from "fastify"
-import { blockUser, changePassword, changeProfileImg, changeUsername, getUser, loginUser, logoutUser, registerUser, removeUser, unblockUser } from "./user.contoller.ts"
+import { 
+    blockUser, 
+    changePassword, 
+    changeProfileImg, 
+    changeUsername, 
+    getUser, 
+    loginUser, 
+    logoutUser, 
+    registerUser, 
+    removeUser, 
+    unblockUser,
+    searchUsers,
+} from "./user.contoller.ts"
 import verifyAuth from "../../middlewares/verifyAuth.middleware.ts"
 
 async function userRouter(app: FastifyInstance) {
@@ -62,6 +74,11 @@ async function userRouter(app: FastifyInstance) {
         unblockUser 
     )
 
+    app.post(
+        "/search",
+        { preHandler: verifyAuth },
+        searchUsers
+    )
 
 }
 
