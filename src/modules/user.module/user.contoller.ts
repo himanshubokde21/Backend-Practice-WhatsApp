@@ -3,7 +3,7 @@ import asyncHander from "../../utils/asynHandler.util.ts"
 import ApiError from "../../utils/ApiError.util.ts"
 import db from "../../../db.ts"
 import userTable from "../../db/schemas/user.schema.ts";
-import { eq, or, and } from "drizzle-orm";
+import { eq, or, and, inArray } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "../../utils/bcrypt.util.ts"
 import ApiResponse from "../../utils/ApiResponse.util.ts"
 import { uploadOnCloudinary, deleteFromCloudinary } from "../../utils/cloudinary.util.ts"
@@ -13,20 +13,7 @@ import type { MultipartFile } from "@fastify/multipart";
 import app from "../../app.ts";
 import contactTable from "../../db/schemas/contact.schema.ts";
 import blockTable from "../../db/schemas/block.schema.ts";
-
-// registerUser
-// loginUser
-// logoutUser
-// refreshAccessToken
-// getCurrentUser
-// getUserById
-// searchUsers
-// changeUsername
-// changePassword
-// changeProfileImg
-// blockUser
-// unblockUser
-// removeUser
+import conversationParticipantTable from "../../db/schemas/conversationPaticipant.schema..ts";
 
 const registerUser = asyncHander(async (req: FastifyRequest, rep: FastifyReply) => {
     const fields: Record<string, string> = {}
@@ -459,78 +446,126 @@ const searchUsers = asyncHander(async (req: FastifyRequest, rep: FastifyReply) =
     )
 })
 
-const blockUser = asyncHander(async (req: FastifyRequest, rep: FastifyReply) => {
-    const userId = req.user?.id as string
-    let fields: Record<string, string> = {}
-
-    for await (const part of req.parts()) {
-        if (part?.type == "field") {
-            fields[part.fieldname] = part.value as string || ""
-        }
+const blockUser = asyncHander(async (req: FastifyRequest<{
+    Params: {
+        conversationId: string,
+        blockedUserId: string
     }
+}>, rep: FastifyReply) => {
+    const userId = req.user?.id as string
+    const { conversationId, blockedUserId } = req.params
 
-    if (!fields.username.trim() && !fields.phoneNo.trim()) {
+    if (!conversationId.trim() || !blockedUserId.trim()) {
         throw new ApiError(400, "Bad Request!")
     }
 
-    const [block] = await db
-    .insert(blockTable)
-    .values({
-        blockUserByPhoneNo: fields.phoneNo,
-        blockUserByUsername: fields.username,
-        blockBy: userId
-    })
-    .returning()
+    try {
+        const res = await db
+        .transaction(async (tx) => {
+            const bothParticipant = await tx
+            .select()
+            .from(conversationParticipantTable)
+            .where(
+                and(
+                    eq(conversationParticipantTable.conversationId, conversationId),
+                    inArray(
+                        conversationParticipantTable.userId,
+                        [userId, blockedUserId]
+                    )
+                )
+            )
 
-    if (!block) {
-        throw new ApiError(500, "Internal Server Error!")
+            if (bothParticipant.length != 2) {
+                throw new ApiError(403, "Forbidden")
+            }
+
+            const [block] = await tx
+            .insert(blockTable)
+            .values({
+                blockedUser: blockedUserId,
+                conversationId: conversationId
+            })
+            .returning() 
+
+            if (!block) {
+                throw new ApiError(500, "Internal Server Error!")
+            }
+
+            return block
+
+        })
+
+        return rep
+        .status(200)
+        .send(
+            new ApiResponse(200, res, "User Blocked Successful!")
+        )
+
+    } catch (error) {
+        req.log.error(error)
+        throw error
     }
 
-    return rep
-    .status(200)
-    .send(
-        new ApiResponse(200, block, "User Blocked Successful!")
-    )
+    
 
 
 })
 
-const unblockUser = asyncHander(async (req: FastifyRequest, rep: FastifyReply) => {
-    const userId = req.user?.id as string
-    const fields: Record<string, string> = {}
-
-    for await (const part of req.parts()) {
-        if (part.type == "field") {
-            fields[part.fieldname] = part.value as string || ""
-        }
+const unblockUser = asyncHander(async (req: FastifyRequest<{
+    Params: {
+        conversationId: string,
+        blockedUserId: string
     }
+}>, rep: FastifyReply) => {
+    const { conversationId, blockedUserId } = req.params    
 
-    if (!fields.username.trim() && !fields.phoneNo.trim()) {
-        throw new ApiError(400, "Bad Request!")
-    }
+    if (!conversationId.trim() || !blockedUserId.trim())
 
-    const [unblock] = await db
-    .delete(blockTable)
-    .where(
-        and(
-            eq(blockTable.blockBy, userId),
-            or(
-                eq(blockTable.blockUserByUsername, fields.username),
-                eq(blockTable.blockUserByPhoneNo, fields.phoneNo)
+    try {
+        await db
+        .transaction(async (tx) => {
+
+            const [blockedUserParticipant] = await tx
+            .select()
+            .from(conversationParticipantTable)
+            .where(
+                and(
+                    eq(conversationParticipantTable.conversationId, conversationId),
+                    eq(conversationParticipantTable.userId, blockedUserId)
+                )
             )
-        )
-    )
-    .returning()
 
-    if (!unblock) {
-        throw new ApiError(500, "internal Server Error!")
+            if (!blockedUserParticipant) {
+                throw new ApiError(409, "User or Conversation Not Found!")
+            }
+
+            const [unblockUser] = await tx
+            .delete(blockTable)
+            .where(
+                and(
+                    eq(blockTable.conversationId, conversationId),
+                    eq(blockTable.blockedUser, blockedUserId)
+                )
+            )
+            .returning()
+
+            if (!unblockUser) {
+                throw new ApiError(500, "Internal Server Error!")
+            }
+
+            return rep
+            .status(200)
+            .send(
+                new ApiResponse(200, {}, "User Unblock Successful!")
+            )
+
+        })
+    } catch (error) {
+        req.log.error(error)
+        throw error
     }
 
-    return rep
-    .status(200)
-    .send(
-        new ApiResponse(200, {}, "User Unblock Successful!")
-    )
+    
 })
 
 export {

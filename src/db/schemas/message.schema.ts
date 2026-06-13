@@ -10,9 +10,6 @@ const messageTable = pgTable("Message", {
     userId: uuid("userId").references(() => userTable.id).notNull(),
     createdAt: timestamp("createdAt").notNull().defaultNow(),
     updatedAt: timestamp("updatedAt").notNull().defaultNow().$onUpdate(() => new Date())
-}, (table) => [
-    uniqueIndex("uniqueMessageId").on(sql`lower(${table.id})`),
-    uniqueIndex("uniqueUserId").on(sql`lower(${table.userId})`)
-])
+})
 
 export default messageTable
